@@ -3,12 +3,11 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Vercelの環境変数を読み込むための設定
-  const env = loadEnv(mode, (process as any).cwd(), '');
+  // Use '.' instead of process.cwd() to prevent TS error "Property 'cwd' does not exist on type 'Process'"
+  const env = loadEnv(mode, '.', '');
   return {
     plugins: [react()],
     define: {
-      // コード内の process.env.API_KEY を安全に置換する
       'process.env.API_KEY': JSON.stringify(env.API_KEY)
     }
   }
