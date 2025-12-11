@@ -51,13 +51,13 @@ export const analyzeNarrative = async (text: string, modelId: string = "gemini-2
 
 1. **セグメンテーション**: 物語を主要なビート（出来事の単位）に分割してください。
 2. **三幕構成の判定**: 古典的なハリウッド三幕構成、または序破急の理論に基づき、各ビートがどこに属するか判定してください。
-3. **数値化**:
-   - \`emotional_value\`: 主人公の状況や感情がポジティブかネガティブか数値化してください（-10から10）。
-   - \`tension_level\`: 観客が感じるハラハラドキドキ（緊張感）を数値化してください（0から10）。
+3. **数値化（基準を厳守すること）**:
+   - \`emotional_value\`: 主人公の状況や感情がポジティブかネガティブか数値化してください。基準は[-10: 絶望/死, 0: 平常/ニュートラル, +10: 最高の幸福/勝利]とします。
+   - \`tension_level\`: 観客が感じるハラハラドキドキ（緊張感）を数値化してください。基準は[0: 緩和/静寂, 5: 葛藤/不安, 10: 命の危険/クライマックス]とします。
 4. **分析**: 単なるあらすじではなく、「なぜこのシーンが必要か」という機能的な分析を含めてください。
 5. **品質管理(QC)**: リテラ企画としての強みを活かし、プロデューサー視点で構造的な欠陥（中だるみ、唐突な展開、カタルシス不足など）があれば \`structural_defect_feedback\` に厳しく指摘してください。
 
-出力は指定されたJSONスキーマに厳密に従ってください。
+出力は指定されたJSONスキーマに厳密に従い、毎回同じロジックで一貫性のある分析をしてください。
 `;
 
   try {
@@ -70,7 +70,7 @@ export const analyzeNarrative = async (text: string, modelId: string = "gemini-2
         systemInstruction: systemPrompt,
         responseMimeType: "application/json",
         responseSchema: analysisResponseSchema,
-        temperature: 0.2, // Low temperature for consistent structural analysis
+        temperature: 0.0, // Set to 0.0 for deterministic and consistent results
       },
     });
 

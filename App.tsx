@@ -12,11 +12,12 @@ import {
   FileText, 
   Loader2,
   Settings,
-  Info
+  Info,
+  Printer
 } from 'lucide-react';
 
 // App Constants
-const APP_VERSION = "v1.1.0";
+const APP_VERSION = "v1.2.0";
 const MAX_CHAR_LIMIT = 30000; // Limit to ensure stability on free tier
 const MODELS = [
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (推奨・高速)' },
@@ -50,6 +51,10 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
+  const handlePrint = () => {
+    window.print();
+  };
 
   const sampleText = `タイトル：『ラスト・メロディ』
 
@@ -68,7 +73,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50 print:hidden">
         <div className="max-w-screen-2xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-red-700 p-2 rounded-md">
@@ -105,10 +110,10 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-screen-2xl mx-auto w-full p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 print:block">
         
         {/* Left Column: Input */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
+        <div className="lg:col-span-4 flex flex-col gap-6 print:hidden">
           <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 shadow-sm flex flex-col h-full max-h-[calc(100vh-120px)]">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-slate-200 flex items-center gap-2">
@@ -188,16 +193,16 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Column: Visualization */}
-        <div className="lg:col-span-8 flex flex-col gap-6 h-full overflow-hidden">
+        <div className="lg:col-span-8 flex flex-col gap-6 h-full overflow-hidden print:col-span-12">
           {error && (
-            <div className="bg-red-950/30 border border-red-900/50 text-red-200 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-red-950/30 border border-red-900/50 text-red-200 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 print:hidden">
               <AlertTriangle className="w-5 h-5 text-red-500" />
               {error}
             </div>
           )}
 
           {!result && !isLoading && !error && (
-            <div className="h-full flex flex-col items-center justify-center text-slate-600 border-2 border-dashed border-slate-800 rounded-xl p-12">
+            <div className="h-full flex flex-col items-center justify-center text-slate-600 border-2 border-dashed border-slate-800 rounded-xl p-12 print:hidden">
               <Activity className="w-16 h-16 mb-4 opacity-20" />
               <p className="text-lg">左側のフォームにテキストを入力して分析を開始してください</p>
               <p className="text-sm mt-2 opacity-60">AIが三幕構成、感情曲線、テンションの起伏を可視化します</p>
@@ -213,7 +218,7 @@ const App: React.FC = () => {
           )}
 
           {isLoading && (
-            <div className="h-full flex flex-col items-center justify-center space-y-4">
+            <div className="h-full flex flex-col items-center justify-center space-y-4 print:hidden">
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-blue-900 rounded-full opacity-30"></div>
                 <div className="w-16 h-16 border-4 border-blue-500 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
@@ -226,30 +231,45 @@ const App: React.FC = () => {
           {result && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-6 overflow-y-auto pb-10">
               
+              <div className="flex justify-end print:hidden">
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print / Save PDF
+                </button>
+              </div>
+
               {/* Title Card */}
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                  <div>
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                  <div className="flex-1">
                     <h2 className="text-2xl font-bold text-white mb-2">{result.title}</h2>
                     <p className="text-slate-400 leading-relaxed italic border-l-2 border-slate-700 pl-4">
                       "{result.logline}"
                     </p>
                   </div>
-                  <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 md:w-1/3">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Structure Quality Control</h4>
-                    <ul className="space-y-2">
-                      {result.structural_defect_feedback.map((fb, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-xs text-amber-200/80">
-                           <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 text-amber-500" />
-                           {fb}
-                        </li>
-                      ))}
-                      {result.structural_defect_feedback.length === 0 && (
-                        <li className="text-xs text-emerald-400 flex items-center gap-2">
-                           <Activity className="w-3 h-3" /> No major defects detected.
-                        </li>
-                      )}
-                    </ul>
+                  <div className="bg-slate-950 p-0 rounded-lg border border-slate-800 md:w-2/5 max-w-md max-h-[240px] overflow-hidden flex flex-col">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase p-3 border-b border-slate-800 bg-slate-950/70 flex items-center gap-2 shrink-0">
+                      <AlertTriangle className="w-3 h-3 text-amber-500"/>
+                      Structure Quality Control
+                    </h4>
+                    <div className="overflow-y-auto p-3">
+                      <ul className="space-y-3">
+                        {result.structural_defect_feedback.map((fb, idx) => (
+                          <li key={idx} className="flex items-start gap-2.5 text-xs text-amber-200/90">
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                            <span>{fb}</span>
+                          </li>
+                        ))}
+                        {result.structural_defect_feedback.length === 0 && (
+                          <li className="text-xs text-emerald-400 flex items-center gap-2">
+                            <Activity className="w-3 h-3" /> No major defects detected.
+                          </li>
+                        )}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
