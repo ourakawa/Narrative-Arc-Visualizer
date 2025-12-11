@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 // App Constants
-const APP_VERSION = "v1.2.0";
+const APP_VERSION = "v1.3.0";
 const MAX_CHAR_LIMIT = 30000; // Limit to ensure stability on free tier
 const MODELS = [
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (推奨・高速)' },
