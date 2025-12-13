@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 // App Constants
-const APP_VERSION = "v1.3.1"; // Performance Patch
+const APP_VERSION = "v1.3.3"; // UI Tweak
 const MAX_CHAR_LIMIT = 30000; // Limit to ensure stability on free tier
 const MODELS = [
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (推奨・高速)' },
@@ -178,7 +178,7 @@ const App: React.FC = () => {
                   {APP_VERSION}
                 </span>
               </h1>
-              <p className="text-xs text-slate-400">日本映画学会 / リテラ企画 実証実験アプリ</p>
+              <p className="text-xs text-slate-400">リテラ企画 実証実験AIアプリ</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -196,7 +196,7 @@ const App: React.FC = () => {
              </div>
              <button 
                onClick={() => setShowHelp(true)}
-               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+               className="p-2 text-blue-500 hover:text-blue-400 hover:bg-slate-900/50 rounded-full transition-all animate-pulse"
                title="分析指標ガイド"
              >
                <HelpCircle className="w-5 h-5" />
