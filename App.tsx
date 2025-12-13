@@ -13,11 +13,13 @@ import {
   Loader2,
   Settings,
   Info,
-  Printer
+  Printer,
+  HelpCircle,
+  X
 } from 'lucide-react';
 
 // App Constants
-const APP_VERSION = "v1.3.0";
+const APP_VERSION = "v1.3.1"; // Performance Patch
 const MAX_CHAR_LIMIT = 30000; // Limit to ensure stability on free tier
 const MODELS = [
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (推奨・高速)' },
@@ -25,38 +27,8 @@ const MODELS = [
   { id: 'gemini-2.5-flash-lite-preview-02-05', name: 'Gemini 2.5 Flash Lite (最速)' },
 ];
 
-const App: React.FC = () => {
-  const [inputText, setInputText] = useState('');
-  const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const charCount = inputText.length;
-  const isOverLimit = charCount > MAX_CHAR_LIMIT;
-
-  const handleAnalyze = async () => {
-    if (!inputText.trim() || isOverLimit) return;
-    
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      const data = await analyzeNarrative(inputText, selectedModel);
-      setResult(data);
-    } catch (err: any) {
-      setError(err.message || "解析中にエラーが発生しました。時間を置いて再試行するか、テキストを短くしてください。");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const sampleText = `タイトル：『ラスト・メロディ』
+// Sample Text
+const SAMPLE_TEXT = `タイトル：『ラスト・メロディ』
 
 第一幕
 かつて天才ピアニストと呼ばれた主人公・有馬は、事故で左手の機能を失い、今はしがない調律師として生きている。ある日、彼は古いピアノの調律依頼を受け、山奥の洋館を訪れる。そこで出会ったのは、盲目の少女・エリス。彼女は「完成しない曲がある」と言い、有馬に演奏を頼む。有馬は断るが、エリスの純粋な音色に心を動かされ、指導を引き受けることになる。
@@ -69,6 +41,126 @@ const App: React.FC = () => {
 逃避行の末、二人は海辺の廃教会にたどり着く。そこで有馬は、かつて自分が左手を失った事故の原因が、この祖父との因縁にあることを知る。絶望する有馬だが、エリスは「過去は変えられないけど、この曲のラストは変えられる」と告げる。
 追手が教会を取り囲む中、二人は最後の連弾を始める。それは悲劇的な旋律ではなく、希望に満ちた長調へと転調していく。演奏が終わると同時に、祖父が入ってくるが、二人の音楽の力に圧倒され、立ち尽くす。
 後日、有馬は再び表舞台に戻ることはなかったが、街のピアノ教室からは、楽しげな連弾の音が聞こえてくるのだった。`;
+
+// Pre-calculated result for the sample text (Instant Load / Zero Cost)
+const SAMPLE_RESULT: AnalysisResponse = {
+  title: "ラスト・メロディ",
+  logline: "左手を失った元天才ピアニストと盲目の少女が、連弾を通じて過去のトラウマと因縁を乗り越え、希望のラストシーンを奏でる再生の物語。",
+  overall_structure: "非常に堅実で古典的な三幕構成に従っています。第一幕で欠落を抱えた二人が出会い、第二幕で協力と試練（コンクールの失敗と追跡）を経て絆を深め、第三幕で過去の因縁と対峙し、音楽による魂の救済で解決に至ります。カタルシスの配置が適切です。",
+  structural_defect_feedback: [
+    "全体的に完成度が高いですが、祖父が改心するプロセスが「音楽の力」の一点に依存しており、ややご都合主義に見える可能性があります。",
+    "コンクールから廃教会への移動の動機付け（逃避行）のテンポ感が、前後のシーンに比べて急に感じられるかもしれません。"
+  ],
+  beats: [
+    {
+      beat_number: 1,
+      title: "有馬とエリスの出会い",
+      summary: "左手を失った元天才ピアニスト有馬が、調律依頼で盲目の少女エリスと出会う。彼女の未完成の曲と純粋な音色に触れ、指導を引き受ける。",
+      act: "Act 1",
+      emotional_value: -3,
+      tension_level: 2,
+      analysis_comment: "主人公の現状（欠落）の提示と、インサイティング・インシデント（出会い）。静かな始まり。"
+    },
+    {
+      beat_number: 2,
+      title: "連弾を通じた交流",
+      summary: "エリスは有馬の嘘を見抜くが、連弾を通じて心を通わせる。二人の欠落が補完関係にあることが示される。",
+      act: "Act 2",
+      emotional_value: 3,
+      tension_level: 3,
+      analysis_comment: "関係性の構築。ポジティブな感情の上昇が見られるプログレスパート。"
+    },
+    {
+      beat_number: 3,
+      title: "祖父の妨害と脱出",
+      summary: "エリスの祖父が交流を禁じる。エリスが身代わりであったことが判明し、有馬は彼女を連れ出しコンクールへ向かう。",
+      act: "Act 2",
+      emotional_value: -2,
+      tension_level: 6,
+      analysis_comment: "敵対者の登場による葛藤の発生。ミッドポイントへ向かう動機の転換。"
+    },
+    {
+      beat_number: 4,
+      title: "コンクールでの挫折と共鳴",
+      summary: "予選ステージで有馬のトラウマが発動し演奏が止まるが、エリスのリードにより持ち直し、会場を圧倒する演奏となる。",
+      act: "Act 2",
+      emotional_value: 6,
+      tension_level: 8,
+      analysis_comment: "「全てを失う」瞬間の回避と、二人の絆の証明。感情値が大きく振れるシーン。"
+    },
+    {
+      beat_number: 5,
+      title: "廃教会での絶望と決意",
+      summary: "追手から逃げた廃教会で、有馬は自身の事故と祖父の因縁を知り絶望するが、エリスの言葉で再起する。",
+      act: "Act 3",
+      emotional_value: -8,
+      tension_level: 7,
+      analysis_comment: "「魂の暗い夜」。クライマックス直前の最も感情が沈むポイント。"
+    },
+    {
+      beat_number: 6,
+      title: "最後の連弾",
+      summary: "追手が迫る中、二人は希望に満ちた長調の曲を奏でる。その音楽は祖父をも圧倒し、因縁を断ち切る。",
+      act: "Act 3",
+      emotional_value: 9,
+      tension_level: 9,
+      analysis_comment: "クライマックス。最大の緊張と最高の感情的カタルシスが同時に訪れる。"
+    },
+    {
+      beat_number: 7,
+      title: "エピローグ",
+      summary: "有馬は表舞台には戻らなかったが、ピアノ教室から楽しげな連弾の音が聞こえ、平穏な日常が示唆される。",
+      act: "Act 3",
+      emotional_value: 5,
+      tension_level: 0,
+      analysis_comment: "レゾリューション。新しい日常への着地。"
+    }
+  ]
+};
+
+const App: React.FC = () => {
+  const [inputText, setInputText] = useState('');
+  const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+
+  const charCount = inputText.length;
+  const isOverLimit = charCount > MAX_CHAR_LIMIT;
+
+  const handleAnalyze = async () => {
+    if (!inputText.trim() || isOverLimit) return;
+    
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+
+    // COST OPTIMIZATION:
+    // If the input matches the sample text exactly, use the pre-calculated result.
+    // This makes the demo instant (0s latency) and costs $0 (0 tokens).
+    if (inputText === SAMPLE_TEXT) {
+      // Simulate a very short network delay for UI smoothness (optional, can be 0)
+      setTimeout(() => {
+        setResult(SAMPLE_RESULT);
+        setIsLoading(false);
+      }, 600);
+      return;
+    }
+
+    try {
+      const data = await analyzeNarrative(inputText, selectedModel);
+      setResult(data);
+    } catch (err: any) {
+      setError(err.message || "解析中にエラーが発生しました。時間を置いて再試行するか、テキストを短くしてください。");
+    } finally {
+      setIsLoading(false); // Only needed here if we didn't hit the cache
+    }
+  };
+  
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -102,6 +194,13 @@ const App: React.FC = () => {
                  ))}
                </select>
              </div>
+             <button 
+               onClick={() => setShowHelp(true)}
+               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+               title="分析指標ガイド"
+             >
+               <HelpCircle className="w-5 h-5" />
+             </button>
              <div className="text-xs font-mono text-emerald-500 flex items-center gap-1">
                <Activity className="w-3 h-3" /> Ready
              </div>
@@ -121,7 +220,7 @@ const App: React.FC = () => {
                 Script / Plot Input
               </h2>
               <button 
-                onClick={() => setInputText(sampleText)}
+                onClick={() => setInputText(SAMPLE_TEXT)}
                 className="text-xs text-slate-500 hover:text-blue-400 underline"
               >
                 サンプルを入力
@@ -211,7 +310,7 @@ const App: React.FC = () => {
                   <Info className="w-3 h-3" /> Max {MAX_CHAR_LIMIT.toLocaleString()} chars
                 </div>
                 <div className="flex items-center gap-1">
-                  <Settings className="w-3 h-3" /> Multi-Model Support
+                  <Settings className="w-3 h-3" /> Sample: Zero Cost / Instant Load
                 </div>
               </div>
             </div>
@@ -320,6 +419,55 @@ const App: React.FC = () => {
             </div>
           )}
         </div>
+        
+        {/* Help Modal */}
+        {showHelp && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 print:hidden">
+            <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  AI分析指標ガイド
+                </h3>
+                <button 
+                  onClick={() => setShowHelp(false)}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-6 text-sm text-slate-300 max-h-[70vh] overflow-y-auto">
+                <div>
+                  <h4 className="font-bold text-emerald-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Emotional Arc (感情曲線)
+                  </h4>
+                  <p className="leading-relaxed opacity-90">
+                    主人公の心理状態や運勢の浮き沈みを数値化しています。
+                    <br/><span className="text-xs opacity-60">[-10: 絶望/死] 〜 [0: 平常] 〜 [+10: 最高の幸福]</span>
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-bold text-rose-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                    Tension Level (テンション)
+                  </h4>
+                  <p className="leading-relaxed opacity-90">
+                    観客が感じる緊張感やサスペンスの度合いです。
+                    <br/><span className="text-xs opacity-60">[0: 緩和/静寂] 〜 [5: 葛藤] 〜 [10: クライマックス/命の危険]</span>
+                  </p>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-lg">
+                  <h4 className="font-bold text-amber-400 mb-1 text-xs uppercase">分析のヒント</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    一般的に、ヒット作は「感情」と「テンション」が逆の動きをすることが多いと言われています（例：主人公は絶望しているが、物語の緊張感は最高潮にあるなど）。二つのラインの乖離や交差に注目してください。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
